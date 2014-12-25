@@ -2,25 +2,27 @@ import elevator.Location
 import elevator.Person
 import elevator.Elevator
 
+
 object Main { 
 	def main(args: Array[String]) = {
 	    
-	   val elevator = new Elevator(false,false,Location(0),Location(0))
+	   val elevator1 = new Elevator(1,false,false,Location(0),Location(0))
+       val elevator2 = new Elevator(2,false,false,Location(0),Location(0))
 
  
-	   def reachDestination(choice: Int, person:Person) = {
+	   def reachDestination(choice: Int, person:Person, elevator:Elevator) = {
 	   		println("*******************************************")
 	   	    println("Enter the elevator")
 
 	   	    choice match {
     			case x if x < person.currentFloor.floorNo => {
-    				println("Elevator going down carrying a person")
+    				println("Elevator "+elevator.id+" going down carrying a person")
     			}	
     			case x if x > person.currentFloor.floorNo => {
-    				println("Elevator going up carrying a person")
+    				println("Elevator "+elevator.id+" going up carrying a person")
     			}	
     			case x if x == person.currentFloor.floorNo => {
-    				println("Elevator at the same floor - Door opening")
+    				println("Elevator "+elevator.id+" at the same floor - Door opening")
     			}	
 			}
 
@@ -29,30 +31,30 @@ object Main {
 
  			elevator.destinationFloor.floorNo = choice
  			println("*******************************************")
- 			println("*******************************************")
+ 			println("Elevator 1 is at floor - "+ elevator1.currentFloor.floorNo)
+            println("Elevator 2 is at floor - "+ elevator2.currentFloor.floorNo)
  			println("*******************************************")
 			getNewPerson
 	   }
 
-       def callElevator(person: Person) {
-			println("Elevator is at floor - "+ elevator.currentFloor.floorNo)
-
+       def callElevator(person: Person, elevator: Elevator) {
+            println("*******************************************")
 			person.currentFloor.floorNo match {
     			case x if x < elevator.currentFloor.floorNo => {
-    				println("Elevator going down")
+    				println("Elevator "+elevator.id+" going down")
     			}	
     			case x if x > elevator.currentFloor.floorNo => {
-    				println("Elevator going up")
+    				println("Elevator "+elevator.id+" going up")
     			}	
     			case x if x == elevator.currentFloor.floorNo => {
-    				println("Elevator at the same floor - Door opening")
+    				println("Elevator "+elevator.id+" at the same floor - Door opening")
     			}	
 			}
 
 			elevator.currentFloor.floorNo = person.currentFloor.floorNo
 
 			println("Door opening")
-			println("Currently elevator and you are at floor - "+elevator.currentFloor.floorNo)
+			println("Currently elevator "+elevator.id+ " and you are at floor - "+elevator.currentFloor.floorNo)
 			println("Which floor you want to go ? (0-5) where 0 = basement and 5 = Penthouse: ")
         	var choice = readInt
         	println("You want to go to floor No. - " + choice)
@@ -63,7 +65,7 @@ object Main {
         	    var passcode = readLine()	
         	    if(passcode == "password") {
         	      elevator.destinationFloor.floorNo = choice
-    			  reachDestination(choice,person)
+    			  reachDestination(choice,person,elevator)
         	    }
         	  }else {
         	  	println("Entry prohibited ! 5th Floor is only accessible to Tenants and Landlords and emergency services")
@@ -71,12 +73,37 @@ object Main {
         	  }	
         	}else {
         		elevator.destinationFloor.floorNo = choice
-    			reachDestination(choice,person)
+    			reachDestination(choice,person,elevator)
         	}
         }
 
+        def prioritizeElevator(person: Person, elevatorList: List[Int]) = {
+
+            def c(l:List[Int],n:Int)=l.sortWith((a,b)=>(a-n).abs<(b-n).abs)(0)
+            c(elevatorList,person.currentFloor.floorNo)
+        }
+
         def monitor(person: Person) = {
-        	callElevator(person)
+            println("Elevator 1 is at floor - "+ elevator1.currentFloor.floorNo)
+            println("Elevator 2 is at floor - "+ elevator2.currentFloor.floorNo)
+            println("Press button to call elevator [ Press 1 ] - ")
+            var ln = readInt
+            println(ln)
+            if(ln == 1) {
+                if(elevator1.currentFloor.floorNo == elevator2.currentFloor.floorNo) {
+                    callElevator(person,elevator1)
+                }else {
+                    val elevatorList = List(elevator1.currentFloor.floorNo,elevator2.currentFloor.floorNo)
+                    prioritizeElevator(person, elevatorList) match {
+                        case x if x == elevator1.currentFloor.floorNo => {
+                            callElevator(person,elevator1) 
+                        }
+                        case x if x == elevator2.currentFloor.floorNo => {
+                            callElevator(person,elevator2)  
+                        }
+                    }
+                }
+            }
         }
 
         def getNewPerson = {
@@ -85,13 +112,13 @@ object Main {
         	println("2. Tenant")
         	var ln = readInt
 
-        	println("On which floor are you currently ?")
+        	println("Please provide your current floor location ?")
         	var currPos = readInt
 
         	val person = new Person(ln,Location(currPos))
         	println("*******************************************")
 
-        	println("Your current position is "+ person.currentFloor.floorNo)
+        	println("Your current position is floor - "+ person.currentFloor.floorNo)
 
 	    	monitor(person)
         }
